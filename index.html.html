@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krishan Ahuja -- Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@12.38.0/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        kanit: ['Kanit', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        html,
+        body,
+        #root {
+            background: #0C0C0C;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        .hero-heading {
+            background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .contact-btn-gradient {
+            background: linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%);
+            box-shadow: 0px 4px 4px rgba(181, 1, 167, 0.25), 4px 4px 12px #7721B1 inset;
+        }
+
+        .contact-btn-outline {
+            position: relative;
+        }
+
+        .contact-btn-outline::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: inherit;
+            border: 2px solid white;
+            pointer-events: none;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+        const { motion, useScroll, useTransform, useInView } = window.Motion;
+
+        // ===================== FADEIN COMPONENT =====================
+        const FadeIn = ({ children, delay = 0, duration = 0.7, x = 0, y = 30, className = '', as: Component = 'div' }) => {
+            const ref = useRef(null);
+            const isInView = useInView(ref, { once: true, margin: '50px', amount: 0 });
+
+            return (
+                <motion.div
+                    ref={ref}
+                    initial={{ opacity: 0, x, y }}
+                    animate={isInView ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, x, y }}
+                    transition={{
+                        duration,
+                        delay,
+                        ease: [0.25, 0.1, 0.25, 1],
+                    }}
+                    className={className}
+                >
+                    {children}
+                </motion.div>
+            );
+        };
+
+        // ===================== MAGNET COMPONENT =====================
+        const Magnet = ({ children, padding = 150, strength = 3, activeTransition = 'transform 0.3s ease-out', inactiveTransition = 'transform 0.6s ease-in-out' }) => {
+            const ref = useRef(null);
+            const [transform, setTransform] = useState({ x: 0, y: 0 });
+            const [isActive, setIsActive] = useState(false);
+
+            const handleMouseMove = useCallback((e) => {
+                if (!ref.current) return;
+                const rect = ref.current.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const distX = e.clientX - centerX;
+                const distY = e.clientY - centerY;
+                const distance = Math.sqrt(distX * distX + distY * distY);
+                const maxDist = Math.max(rect.width, rect.height) / 2 + padding;
+
+                if (distance < maxDist) {
+                    setIsActive(true);
+                    setTransform({
+                        x: distX / strength,
+                        y: distY / strength,
+                    });
+                } else {
+                    setIsActive(false);
+                    setTransform({ x: 0, y: 0 });
+                }
+            }, [padding, strength]);
+
+            const handleMouseLeave = useCallback(() => {
+                setIsActive(false);
+                setTransform({ x: 0, y: 0 });
+            }, []);
+
+            useEffect(() => {
+                window.addEventListener('mousemove', handleMouseMove);
+                return () => window.removeEventListener('mousemove', handleMouseMove);
+            }, [handleMouseMove]);
+
+            return (
+                <div
+                    ref={ref}
+                    onMouseLeave={handleMouseLeave}
+                    style={{
+                        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+                        transition: isActive ? activeTransition : inactiveTransition,
+                        willChange: 'transform',
+                    }}
+                >
+                    {children}
+                </div>
+            );
+        };
+
+        // ===================== CONTACT BUTTON =====================
+        const ContactButton = ({ className = '' }) => (
+            <a
+                href="https://wa.me/918076178254"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-block contact-btn-gradient contact-btn-outline rounded-full text-white font-medium uppercase tracking-widest text-xs sm:text-sm md:text-base px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 cursor-pointer transition-transform hover:scale-105 ${className}`}
+            >
+                Contact Me
+            </a>
+        );
+
+        // ===================== LIVE PROJECT BUTTON =====================
+        const LiveProjectButton = ({ link, className = '' }) => {
+            if (!link) return null;
+            return (
+                <a 
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-block text-center rounded-full border-2 border-[#D7E2EA] text-[#D7E2EA] font-medium uppercase tracking-widest text-sm sm:text-base px-8 py-3 sm:px-10 sm:py-3.5 hover:bg-[#D7E2EA]/10 transition-colors cursor-pointer ${className}`}
+                >
+                    Live Project
+                </a>
+            );
+        };
+
+        // ===================== ANIMATED TEXT =====================
+        const AnimatedText = ({ text, className = '' }) => {
+            const ref = useRef(null);
+            const { scrollYProgress } = useScroll({
+                target: ref,
+                offset: ['start 0.8', 'end 0.2'],
+            });
+
+            const words = text.split(' ');
+
+            return (
+                <p ref={ref} className={`${className}`}>
+                    {words.map((word, wordIndex) => (
+                        <span key={wordIndex} className="inline-block mr-[0.25em]">
+                            {word.split('').map((char, charIndex) => {
+                                const totalChars = text.length;
+                                const charPosition = words.slice(0, wordIndex).join('').length + charIndex + wordIndex;
+                                const start = charPosition / totalChars;
+                                const end = (charPosition + 1) / totalChars;
+
+                                return (
+                                    <span key={charIndex} className="relative inline-block">
+                                        <span className="opacity-20">{char}</span>
+                                        <motion.span
+                                            className="absolute left-0 top-0"
+                                            style={{
+                                                opacity: useTransform(scrollYProgress, [start, end], [0, 1]),
+                                            }}
+                                        >
+                                            {char}
+                                        </motion.span>
+                                    </span>
+                                );
+                            })}
+                        </span>
+                    ))}
+                </p>
+            );
+        };
+
+        // ===================== MARQUEE IMAGES =====================
+        const marqueeImages = [
+            'https://motionsites.ai/assets/hero-space-voyage-preview-eECLH3Yc.gif',
+            'https://motionsites.ai/assets/hero-codenest-preview-Cgppc2qV.gif',
+            'https://motionsites.ai/assets/hero-vex-ventures-preview-BczMFIiw.gif',
+            'https://motionsites.ai/assets/hero-stellar-ai-v2-preview-DjvxjG3C.gif',
+            'https://motionsites.ai/assets/hero-asme-preview-B_nGDnTP.gif',
+            'https://motionsites.ai/assets/hero-transform-data-preview-Cx5OU29N.gif',
+            'https://motionsites.ai/assets/hero-vitara-preview-Cjz2QYyU.gif',
+            'https://motionsites.ai/assets/hero-terra-preview-BFjrCr7T.gif',
+            'https://motionsites.ai/assets/hero-skyelite-preview-DHaZIgUv.gif',
+            'https://motionsites.ai/assets/hero-aethera-preview-DknSlcTa.gif',
+            'https://motionsites.ai/assets/hero-designpro-preview-D8c5_een.gif',
+            'https://motionsites.ai/assets/hero-stellar-ai-preview-D3HL6bw1.gif',
+            'https://motionsites.ai/assets/hero-xportfolio-preview-D4A8maiC.gif',
+            'https://motionsites.ai/assets/hero-orbit-web3-preview-BXt4OttD.gif',
+            'https://motionsites.ai/assets/hero-nexora-preview-cx5HmUgo.gif',
+            'https://motionsites.ai/assets/hero-evr-ventures-preview-DZxeVFEX.gif',
+            'https://motionsites.ai/assets/hero-planet-orbit-preview-DWAP8Z1P.gif',
+            'https://motionsites.ai/assets/hero-new-era-preview-CocuDUm9.gif',
+            'https://motionsites.ai/assets/hero-wealth-preview-B70idl_u.gif',
+            'https://motionsites.ai/assets/hero-luminex-preview-CxOP7ce6.gif',
+            'https://motionsites.ai/assets/hero-celestia-preview-0yO3jXO8.gif',
+        ];
+
+        // ===================== HERO SECTION =====================
+        const HeroSection = () => {
+            return (
+                <section className="relative h-screen flex flex-col overflow-x-clip" id="hero">
+                    {/* Navbar */}
+                    <FadeIn delay={0} y={-20}>
+                        <nav className="flex justify-between items-center px-6 md:px-10 pt-6 md:pt-8">
+                            {['About', 'Skills', 'Projects', 'Contact'].map((item) => (
+                                <a
+                                    key={item}
+                                    href={`#${item.toLowerCase()}`}
+                                    className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-opacity duration-200"
+                                >
+                                    {item}
+                                </a>
+                            ))}
+                        </nav>
+                    </FadeIn>
+
+                    {/* Hero Heading */}
+                    <div className="overflow-hidden w-full mt-6 sm:mt-4 md:-mt-5 px-4">
+                        <FadeIn delay={0.15} y={40}>
+                            <h1 className="hero-heading font-black uppercase tracking-tight leading-none w-full text-[12vw] sm:text-[11vw] md:text-[10vw] lg:text-[9vw] text-center">
+                                Hi, I'm Krishan
+                            </h1>
+                        </FadeIn>
+                    </div>
+
+                    {/* Hero Portrait */}
+                    <FadeIn delay={0.6} y={30} className="absolute left-1/2 -translate-x-1/2 z-10 top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px]">
+                        <Magnet padding={150} strength={3}>
+                            <img
+                                src="https://shrug-person-78902957.figma.site/_components/v2/d24c01ad3a56fc65e942a1f501eb73db42d7cf9a/Rectangle_40443.81459862.png"
+                                alt="Jack Portrait"
+                                className="w-full h-auto object-contain"
+                                loading="eager"
+                            />
+                        </Magnet>
+                    </FadeIn>
+
+                    {/* Bottom Bar */}
+                    <div className="mt-auto flex justify-between items-end pb-7 sm:pb-8 md:pb-10 px-6 md:px-10">
+                        <FadeIn delay={0.35} y={20}>
+                            <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[160px] sm:max-w-[220px] md:max-w-[260px]" style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}>
+                                a full-stack developer driven by building responsive and user-focused web applications
+                            </p>
+                        </FadeIn>
+                        <FadeIn delay={0.5} y={20}>
+                            <ContactButton />
+                        </FadeIn>
+                    </div>
+                </section>
+            );
+        };
+
+        // ===================== MARQUEE SECTION =====================
+        const MarqueeSection = () => {
+            const sectionRef = useRef(null);
+            const [offset, setOffset] = useState(0);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    if (!sectionRef.current) return;
+                    const sectionTop = sectionRef.current.getBoundingClientRect().top + window.scrollY;
+                    const scrollOffset = (window.scrollY - sectionTop + window.innerHeight) * 0.3;
+                    setOffset(scrollOffset);
+                };
+
+                window.addEventListener('scroll', handleScroll, { passive: true });
+                handleScroll();
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const row1Images = [...marqueeImages.slice(0, 11), ...marqueeImages.slice(0, 11), ...marqueeImages.slice(0, 11)];
+            const row2Images = [...marqueeImages.slice(11), ...marqueeImages.slice(11), ...marqueeImages.slice(11)];
+
+            return (
+                <section ref={sectionRef} className="bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden" id="marquee">
+                    <div className="flex gap-3" style={{ transform: `translateX(${offset - 200}px)`, willChange: 'transform' }}>
+                        {row1Images.map((src, i) => (
+                            <div key={`r1-${i}`} className="flex-shrink-0 w-[420px] h-[270px] rounded-2xl overflow-hidden">
+                                <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex gap-3 mt-3" style={{ transform: `translateX(${-(offset - 200)}px)`, willChange: 'transform' }}>
+                        {row2Images.map((src, i) => (
+                            <div key={`r2-${i}`} className="flex-shrink-0 w-[420px] h-[270px] rounded-2xl overflow-hidden">
+                                <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" />
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            );
+        };
+
+        // ===================== ABOUT SECTION =====================
+        const AboutSection = () => {
+            return (
+                <section className="relative min-h-screen flex flex-col items-center justify-center px-5 sm:px-8 md:px-10 py-20 overflow-hidden" id="about">
+                    {/* Decorative Images */}
+                    <FadeIn delay={0.1} x={-80} duration={0.9} className="absolute top-[4%] left-[1%] sm:left-[2%] md:left-[4%]">
+                        <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png" alt="" className="w-[120px] sm:w-[160px] md:w-[210px]" loading="lazy" />
+                    </FadeIn>
+                    <FadeIn delay={0.25} x={-80} duration={0.9} className="absolute bottom-[8%] left-[3%] sm:left-[6%] md:left-[10%]">
+                        <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png" alt="" className="w-[100px] sm:w-[140px] md:w-[180px]" loading="lazy" />
+                    </FadeIn>
+                    <FadeIn delay={0.15} x={80} duration={0.9} className="absolute top-[4%] right-[1%] sm:right-[2%] md:right-[4%]">
+                        <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png" alt="" className="w-[120px] sm:w-[160px] md:w-[210px]" loading="lazy" />
+                    </FadeIn>
+                    <FadeIn delay={0.3} x={80} duration={0.9} className="absolute bottom-[8%] right-[3%] sm:right-[6%] md:right-[10%]">
+                        <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png" alt="" className="w-[130px] sm:w-[170px] md:w-[220px]" loading="lazy" />
+                    </FadeIn>
+
+                    {/* Heading */}
+                    <FadeIn delay={0} y={40}>
+                        <h2 className="hero-heading font-black uppercase leading-none tracking-tight text-center" style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}>
+                            About me
+                        </h2>
+                    </FadeIn>
+
+                    {/* Animated Paragraph */}
+                    <div className="mt-10 sm:mt-14 md:mt-16 max-w-[560px] text-center">
+                        <AnimatedText
+                            text="Passionate Web Development Intern with strong skills in developing responsive, modern, and user-focused websites. Skilled in building full-stack web applications with Node.js, Express.js, MongoDB, and REST API integration. Let's build something incredible together!"
+                            className="text-[#D7E2EA] font-medium leading-relaxed"
+                            style={{ fontSize: 'clamp(1rem, 2vw, 1.35rem)' }}
+                        />
+                    </div>
+
+                    {/* Contact Button */}
+                    <FadeIn delay={0.5} y={20} className="mt-16 sm:mt-20 md:mt-24">
+                        <ContactButton />
+                    </FadeIn>
+                </section>
+            );
+        };
+
+        // ===================== SKILLS SECTION =====================
+        const skills = [
+            {
+                number: '01',
+                name: 'Frontend Development',
+                description: 'JavaScript (ES6+), HTML5, CSS3, React.js, Bootstrap, Tailwind CSS. Building responsive, modern, and user-focused websites.',
+            },
+            {
+                number: '02',
+                name: 'Backend Development',
+                description: 'Node.js, Express.js, Python. Designing and building REST APIs, conversational chatbots, and backend architectures.',
+            },
+            {
+                number: '03',
+                name: 'Database & Integration',
+                description: 'MongoDB, MySQL, Firebase Realtime Database. Experience with Firebase authentication and real-time data updates.',
+            },
+            {
+                number: '04',
+                name: 'Mobile Development',
+                description: 'Cross-platform mobile app development using Flutter and Dart, integrating with back-end services and APIs.',
+            },
+            {
+                number: '05',
+                name: 'Tools & Workflow',
+                description: 'Git, GitHub, VS Code, Postman, Android Studio. API Integration, Debugging, UI/UX Basics, and Responsive Layouts.',
+            },
+        ];
+
+        const SkillsSection = () => {
+            return (
+                <section className="bg-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32" id="skills">
+                    <FadeIn delay={0} y={40}>
+                        <h2 className="text-[#0C0C0C] font-black uppercase text-center mb-16 sm:mb-20 md:mb-28" style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}>
+                            Skills
+                        </h2>
+                    </FadeIn>
+
+                    <div className="max-w-5xl mx-auto">
+                        {skills.map((skill, index) => (
+                            <FadeIn key={skill.number} delay={index * 0.1} y={30}>
+                                <div className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 py-8 sm:py-10 md:py-12 ${index > 0 ? 'border-t' : ''}`} style={{ borderColor: 'rgba(12, 12, 12, 0.15)' }}>
+                                    <span className="text-[#0C0C0C] font-black flex-shrink-0" style={{ fontSize: 'clamp(3rem, 10vw, 140px)', lineHeight: 1 }}>
+                                        {skill.number}
+                                    </span>
+                                    <div className="flex flex-col gap-2">
+                                        <h3 className="text-[#0C0C0C] font-medium uppercase" style={{ fontSize: 'clamp(1rem, 2.2vw, 2.1rem)' }}>
+                                            {skill.name}
+                                        </h3>
+                                        <p className="text-[#0C0C0C] font-light leading-relaxed opacity-60 max-w-2xl" style={{ fontSize: 'clamp(0.85rem, 1.6vw, 1.25rem)' }}>
+                                            {skill.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            </FadeIn>
+                        ))}
+                    </div>
+                </section>
+            );
+        };
+
+        // ===================== PROJECTS SECTION =====================
+        const projects = [
+            {
+                number: '01',
+                name: 'Royal Enfield Website',
+                category: 'HTML, CSS, JS',
+                link: 'https://royalenfeildrepossitory.vercel.app/',
+                col1Img1: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055344_5eff02e0-87a5-41ce-b64f-eb08da8f33db.png&w=1280&q=85',
+                col1Img2: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055431_11d841fd-8b41-46a5-82e4-b04f2407a7d8.png&w=1280&q=85',
+                col2Img: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055451_e317bf2d-28d4-48cc-86b0-6f72f25b6327.png&w=1280&q=85',
+            },
+            {
+                number: '02',
+                name: 'Travel Booking App',
+                category: 'Flutter, Firebase',
+                link: '#',
+                col1Img1: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055654_911201c5-36d9-4bc6-bac7-331adfce159f.png&w=1280&q=85',
+                col1Img2: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055723_5ceda0b8-d9c2-4665-b2e3-83ba19ba76d1.png&w=1280&q=85',
+                col2Img: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055753_adc5dcbd-a8e6-49c0-b43a-9b030d835cea.png&w=1280&q=85',
+            },
+            {
+                number: '03',
+                name: 'Stock market prediction',
+                category: 'Node.js, Express.js',
+                link: '#',
+                col1Img1: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055759_963cfb0b-4bd1-4b0f-9d0a-09bd6cf95b2f.png&w=1280&q=85',
+                col1Img2: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_060108_438f781a-9846-4dcc-89ab-c4e6cb830f5b.png&w=1280&q=85',
+                col2Img: 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055818_9d062121-ad7e-46b9-999a-1a6a692ef1ee.png&w=1280&q=85',
+            },
+         
+            
+        ];
+
+        const ProjectCard = ({ project, index, totalCards }) => {
+            const cardRef = useRef(null);
+            const { scrollYProgress } = useScroll({
+                target: cardRef,
+                offset: ['start end', 'start start'],
+            });
+
+            const targetScale = 1 - (totalCards - 1 - index) * 0.03;
+            const scale = useTransform(scrollYProgress, [0, 1], [1, targetScale]);
+
+            return (
+                <div
+                    ref={cardRef}
+                    className="h-[85vh] sticky top-24 md:top-32"
+                    style={{ top: `${index * 28}px` }}
+                >
+                    <motion.div
+                        className="h-full rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-6 md:p-8 flex flex-col"
+                        style={{ scale }}
+                    >
+                        {/* Top Row */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+                            <div className="flex items-center gap-4 sm:gap-6">
+                                <span className="text-[#D7E2EA] font-black" style={{ fontSize: 'clamp(3rem, 10vw, 140px)', lineHeight: 1 }}>
+                                    {project.number}
+                                </span>
+                                <div className="flex flex-col">
+                                    <span className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm sm:text-base opacity-60">
+                                        {project.category}
+                                    </span>
+                                    <span className="text-[#D7E2EA] font-medium uppercase text-lg sm:text-xl md:text-2xl">
+                                        {project.name}
+                                    </span>
+                                </div>
+                            </div>
+                            <LiveProjectButton link={project.link} />
+                        </div>
+
+                        {/* Bottom Row - Image Grid */}
+                        <div className="flex-1 flex gap-3 sm:gap-4 min-h-0">
+                            <div className="w-[40%] flex flex-col gap-3 sm:gap-4">
+                                <div className="rounded-[40px] sm:rounded-[50px] md:rounded-[60px] overflow-hidden" style={{ height: 'clamp(130px, 16vw, 230px)' }}>
+                                    <img src={project.col1Img1} alt="" className="w-full h-full object-cover" loading="lazy" />
+                                </div>
+                                <div className="flex-1 rounded-[40px] sm:rounded-[50px] md:rounded-[60px] overflow-hidden" style={{ minHeight: 'clamp(160px, 22vw, 340px)' }}>
+                                    <img src={project.col1Img2} alt="" className="w-full h-full object-cover" loading="lazy" />
+                                </div>
+                            </div>
+                            <div className="w-[60%] rounded-[40px] sm:rounded-[50px] md:rounded-[60px] overflow-hidden">
+                                <img src={project.col2Img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        const ProjectsSection = () => {
+            return (
+                <section className="bg-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 relative z-10 px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32" id="projects">
+                    <FadeIn delay={0} y={40}>
+                        <h2 className="hero-heading font-black uppercase leading-none tracking-tight text-center mb-16 sm:mb-20 md:mb-28" style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}>
+                            Project
+                        </h2>
+                    </FadeIn>
+
+                    <div className="max-w-6xl mx-auto">
+                        {projects.map((project, index) => (
+                            <ProjectCard
+                                key={project.number}
+                                project={project}
+                                index={index}
+                                totalCards={projects.length}
+                            />
+                        ))}
+                    </div>
+                </section>
+            );
+        };
+
+        // ===================== FOOTER =====================
+        const Footer = () => (
+            <footer className="bg-[#0C0C0C] px-5 sm:px-8 md:px-10 py-12 sm:py-16 md:py-20 text-center">
+                <FadeIn delay={0} y={20}>
+                    <h3 className="hero-heading font-black uppercase leading-none tracking-tight mb-6" style={{ fontSize: 'clamp(2rem, 8vw, 100px)' }}>
+                        Let's Connect
+                    </h3>
+                    <p className="text-[#D7E2EA] font-light max-w-xl mx-auto mb-8" style={{ fontSize: 'clamp(0.9rem, 1.8vw, 1.2rem)' }}>
+                        Have a project in mind? I'd love to hear about it. Let's create something amazing together.
+                    </p>
+                    <ContactButton />
+                </FadeIn>
+                <FadeIn delay={0.2} y={10}>
+                    <p className="text-[#D7E2EA]/40 font-light text-sm mt-12">
+                        &copy; 2024 Krishan Ahuja. All rights reserved.
+                    </p>
+                </FadeIn>
+            </footer>
+        );
+
+        // ===================== MAIN APP =====================
+        const App = () => {
+            return (
+                <div className="font-kanit bg-[#0C0C0C] min-h-screen overflow-x-clip">
+                    <HeroSection />
+                    <MarqueeSection />
+                    <AboutSection />
+                    <SkillsSection />
+                    <ProjectsSection />
+                    <Footer />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
