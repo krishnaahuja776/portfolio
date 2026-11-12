@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krishan Ahuja — Graphic Designer</title>
+    <meta name="description" content="Krishan Ahuja — Graphic Designer specializing in Brand Identity, UI/UX, Motion Graphics, and Visual Design.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@12.38.0/dist/framer-motion.js"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { kanit: ['Kanit', 'sans-serif'] } } }
+        }
+    </script>
+    <style>
+        :root {
+            --purple: #B600A8;
+            --purple-dark: #7621B0;
+            --bg: #0C0C0C;
+            --text: #D7E2EA;
+        }
+
+        html, body, #root {
+            background: var(--bg);
+            margin: 0; padding: 0;
+            box-sizing: border-box;
+            cursor: none;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        a, button { cursor: none; }
+
+        /* ---- NOISE OVERLAY ---- */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-size: 180px 180px;
+        }
+
+        /* ---- SCROLL PROGRESS ---- */
+        #scroll-progress {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #B600A8, #7621B0, #BE4C00);
+            z-index: 9998;
+            transform-origin: left;
+            width: 100%;
+            transform: scaleX(0);
+            transition: transform 0.1s linear;
+        }
+
+        /* ---- CUSTOM CURSOR ---- */
+        #cursor-dot {
+            position: fixed;
+            width: 8px; height: 8px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transform: translate(-50%, -50%);
+            transition: transform 0.08s ease, opacity 0.3s;
+            mix-blend-mode: difference;
+        }
+        #cursor-ring {
+            position: fixed;
+            width: 36px; height: 36px;
+            border: 1.5px solid rgba(255,255,255,0.6);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9996;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+            mix-blend-mode: difference;
+        }
+        #cursor-ring.hovering {
+            width: 60px; height: 60px;
+            background: rgba(182, 0, 168, 0.15);
+            border-color: var(--purple);
+        }
+
+        /* ---- PRELOADER ---- */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+        }
+        #preloader .pre-name {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 900;
+            font-size: clamp(2.5rem, 10vw, 7rem);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        #preloader .pre-bar-track {
+            width: min(320px, 60vw);
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        #preloader .pre-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #B600A8, #7621B0);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.05s linear;
+        }
+        #preloader .pre-label {
+            font-family: 'Kanit', sans-serif;
+            font-weight: 400;
+            font-size: 0.75rem;
+            color: rgba(215,226,234,0.4);
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+        }
+
+        /* ---- HERO HEADING ---- */
+        .hero-heading {
+            background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Glitch keyframes */
+        @keyframes glitch-1 {
+            0%,100%  { clip-path: inset(0 0 95% 0); transform: translate(-4px,0); }
+            20%      { clip-path: inset(30% 0 50% 0); transform: translate(4px,0); }
+            40%      { clip-path: inset(60% 0 20% 0); transform: translate(-2px,0); }
+            60%      { clip-path: inset(10% 0 80% 0); transform: translate(3px,0); }
+            80%      { clip-path: inset(80% 0 5%  0); transform: translate(-3px,0); }
+        }
+        @keyframes glitch-2 {
+            0%,100%  { clip-path: inset(90% 0 0 0); transform: translate(4px,0); }
+            20%      { clip-path: inset(50% 0 30% 0); transform: translate(-4px,0); }
+            40%      { clip-path: inset(20% 0 60% 0); transform: translate(2px,0); }
+            60%      { clip-path: inset(70% 0 15% 0); transform: translate(-3px,0); }
+            80%      { clip-path: inset(5%  0 85% 0); transform: translate(3px,0); }
+        }
+        .glitch-wrap { position: relative; display: inline-block; }
+        .glitch-wrap::before,
+        .glitch-wrap::after {
+            content: attr(data-text);
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+        }
+        .glitch-wrap:hover::before {
+            animation: glitch-1 0.4s steps(1) infinite;
+            opacity: 1;
+        }
+        .glitch-wrap:hover::after {
+            animation: glitch-2 0.4s steps(1) infinite;
+            opacity: 1;
+        }
+
+        /* ---- CONTACT BUTTON ---- */
+        .contact-btn-gradient {
+            background: linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%);
+            box-shadow: 0px 4px 4px rgba(181,1,167,0.25), 4px 4px 12px #7721B1 inset;
+        }
+        .contact-btn-outline { position: relative; }
+        .contact-btn-outline::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: inherit;
+            border: 2px solid white;
+            pointer-events: none;
+        }
+
+        /* ---- TOOL PILL ---- */
+        .tool-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            color: #BBCCD7;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 500;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .tool-pill:hover {
+            background: rgba(182,0,168,0.12);
+            border-color: rgba(182,0,168,0.4);
+        }
+        .tool-pill .dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: #B600A8;
+        }
+
+        /* ---- MARQUEE ---- */
+        @keyframes mq-left  { 0%{transform:translateX(0)} 100%{transform:translateX(-33.333%)} }
+        @keyframes mq-right { 0%{transform:translateX(-33.333%)} 100%{transform:translateX(0)} }
+        .mq-left  { animation: mq-left  32s linear infinite; }
+        .mq-right { animation: mq-right 32s linear infinite; }
+        .mq-left:hover, .mq-right:hover { animation-play-state: paused; }
+        .mq-fade-left  { mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%); }
+
+        /* ---- STATS ---- */
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 32px 28px;
+            text-align: center;
+            transition: background 0.3s, border-color 0.3s, transform 0.3s;
+        }
+        .stat-card:hover {
+            background: rgba(182,0,168,0.07);
+            border-color: rgba(182,0,168,0.3);
+            transform: translateY(-6px);
+        }
+
+        /* ---- SKILLS ---- */
+        .skill-row {
+            transition: background 0.25s, border-radius 0.25s, padding 0.25s;
+            border-radius: 20px;
+            padding: 0 20px;
+        }
+        .skill-row:hover { background: rgba(12,12,12,0.05); }
+
+        /* ---- PROJECT IMAGES ---- */
+        .proj-img { transition: transform 0.6s ease; }
+        .proj-img:hover { transform: scale(1.05); }
+
+        /* ---- FLOATING BADGE ---- */
+        @keyframes float {
+            0%,100% { transform: translateY(0px); }
+            50%      { transform: translateY(-12px); }
+        }
+        .float-anim { animation: float 4s ease-in-out infinite; }
+        .float-anim-slow { animation: float 6s ease-in-out infinite 1s; }
+        .float-anim-xslow { animation: float 7s ease-in-out infinite 2s; }
+        .float-anim-rev { animation: float 5s ease-in-out infinite 0.5s reverse; }
+    </style>
+</head>
+
+<body>
+    <!-- SCROLL PROGRESS -->
+    <div id="scroll-progress"></div>
+
+    <!-- CUSTOM CURSOR -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- PRELOADER -->
+    <div id="preloader">
+        <div class="pre-name" id="pre-name">KRISHAN</div>
+        <div class="pre-bar-track"><div class="pre-bar-fill" id="pre-fill"></div></div>
+        <div class="pre-label" id="pre-label">Loading portfolio... 0%</div>
+    </div>
+
+    <div id="root"></div>
+
+    <!-- CURSOR + SCROLL + PRELOADER JS (vanilla, runs before React) -->
+    <script>
+        // --- Cursor ---
+        const dot  = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+        let mx = -100, my = -100, rx = -100, ry = -100;
+        document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+        (function animCursor() {
+            dot.style.left  = mx + 'px';
+            dot.style.top   = my + 'px';
+            rx += (mx - rx) * 0.12;
+            ry += (my - ry) * 0.12;
+            ring.style.left = rx + 'px';
+            ring.style.top  = ry + 'px';
+            requestAnimationFrame(animCursor);
+        })();
+        document.querySelectorAll('a,button').forEach(el => {
+            el.addEventListener('mouseenter', () => ring.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => ring.classList.remove('hovering'));
+        });
+        // Also handle dynamically added elements via delegation
+        document.addEventListener('mouseover', e => {
+            if (e.target.closest('a,button')) ring.classList.add('hovering');
+            else ring.classList.remove('hovering');
+        });
+
+        // --- Scroll Progress ---
+        const prog = document.getElementById('scroll-progress');
+        window.addEventListener('scroll', () => {
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            prog.style.transform = `scaleX(${window.scrollY / max})`;
+        }, { passive: true });
+
+        // --- Preloader ---
+        const fill  = document.getElementById('pre-fill');
+        const label = document.getElementById('pre-label');
+        const pre   = document.getElementById('preloader');
+        const preName = document.getElementById('pre-name');
+        let pct = 0;
+        const interval = setInterval(() => {
+            pct += Math.random() * 18 + 4;
+            if (pct >= 100) {
+                pct = 100;
+                clearInterval(interval);
+                fill.style.width = '100%';
+                label.textContent = 'Welcome!';
+                setTimeout(() => {
+                    pre.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
+                    pre.style.opacity = '0';
+                    pre.style.transform = 'scale(1.04)';
+                    setTimeout(() => pre.style.display = 'none', 750);
+                }, 400);
+            } else {
+                fill.style.width = pct + '%';
+                label.textContent = `Loading portfolio... ${Math.floor(pct)}%`;
+            }
+        }, 90);
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+        const { motion, useScroll, useTransform, useInView, animate } = window.Motion;
+
+        // ===================== FADEIN =====================
+        const FadeIn = ({ children, delay=0, duration=0.7, x=0, y=30, className='' }) => {
+            const ref = useRef(null);
+            const isInView = useInView(ref, { once: true, margin: '50px', amount: 0 });
+            return (
+                <motion.div ref={ref}
+                    initial={{ opacity:0, x, y }}
+                    animate={isInView ? { opacity:1, x:0, y:0 } : { opacity:0, x, y }}
+                    transition={{ duration, delay, ease:[0.25,0.1,0.25,1] }}
+                    className={className}>
+                    {children}
+                </motion.div>
+            );
+        };
+
+        // ===================== MAGNET =====================
+        const Magnet = ({ children, padding=150, strength=3 }) => {
+            const ref = useRef(null);
+            const [t, setT] = useState({x:0,y:0});
+            const [active, setActive] = useState(false);
+            const onMove = useCallback((e) => {
+                if (!ref.current) return;
+                const r = ref.current.getBoundingClientRect();
+                const cx=r.left+r.width/2, cy=r.top+r.height/2;
+                const dx=e.clientX-cx, dy=e.clientY-cy;
+                const dist=Math.sqrt(dx*dx+dy*dy);
+                const max=Math.max(r.width,r.height)/2+padding;
+                if (dist<max){ setActive(true); setT({x:dx/strength, y:dy/strength}); }
+                else { setActive(false); setT({x:0,y:0}); }
+            },[padding,strength]);
+            useEffect(()=>{
+                window.addEventListener('mousemove',onMove);
+                return ()=>window.removeEventListener('mousemove',onMove);
+            },[onMove]);
+            return (
+                <div ref={ref} onMouseLeave={()=>{setActive(false);setT({x:0,y:0});}}
+                    style={{ transform:`translate3d(${t.x}px,${t.y}px,0)`,
+                        transition: active?'transform 0.3s ease-out':'transform 0.6s ease-in-out',
+                        willChange:'transform' }}>
+                    {children}
+                </div>
+            );
+        };
+
+        // ===================== ANIMATED TEXT =====================
+        const AnimatedText = ({ text, className='' }) => {
+            const ref = useRef(null);
+            const { scrollYProgress } = useScroll({ target:ref, offset:['start 0.8','end 0.2'] });
+            const words = text.split(' ');
+            return (
+                <p ref={ref} className={className}>
+                    {words.map((word,wi)=>(
+                        <span key={wi} className="inline-block mr-[0.25em]">
+                            {word.split('').map((ch,ci)=>{
+                                const total=text.length;
+                                const pos=words.slice(0,wi).join('').length+ci+wi;
+                                const s=pos/total, e=(pos+1)/total;
+                                return (
+                                    <span key={ci} className="relative inline-block">
+                                        <span className="opacity-20">{ch}</span>
+                                        <motion.span className="absolute left-0 top-0"
+                                            style={{ opacity: useTransform(scrollYProgress,[s,e],[0,1]) }}>
+                                            {ch}
+                                        </motion.span>
+                                    </span>
+                                );
+                            })}
+                        </span>
+                    ))}
+                </p>
+            );
+        };
+
+        // ===================== COUNTER =====================
+        const Counter = ({ target, suffix='' }) => {
+            const ref = useRef(null);
+            const [val, setVal] = useState(0);
+            const isInView = useInView(ref, { once:true, margin:'-50px' });
+            useEffect(()=>{
+                if (!isInView) return;
+                let start=0;
+                const dur=1800;
+                const startTime=performance.now();
+                const tick=(now)=>{
+                    const p=Math.min((now-startTime)/dur,1);
+                    const ease=1-Math.pow(1-p,3);
+                    setVal(Math.round(ease*target));
+                    if(p<1) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            },[isInView,target]);
+            return <span ref={ref}>{val}{suffix}</span>;
+        };
+
+        // ===================== CONTACT BUTTON =====================
+        const ContactButton = ({ className='', label='Contact Me' }) => (
+            <a href="https://wa.me/918076178254" target="_blank" rel="noopener noreferrer"
+                className={`inline-block contact-btn-gradient contact-btn-outline rounded-full text-white font-medium uppercase tracking-widest text-xs sm:text-sm md:text-base px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 cursor-none transition-transform hover:scale-105 ${className}`}>
+                {label}
+            </a>
+        );
+
+        const ToolPill = ({ name }) => (
+            <span className="tool-pill"><span className="dot"></span>{name}</span>
+        );
+
+        // ===================== HERO =====================
+        const tools = ['Figma','Photoshop','Illustrator','InDesign','After Effects','Canva'];
+
+        const HeroSection = () => (
+            <section className="relative h-screen flex flex-col overflow-x-clip" id="hero">
+                <FadeIn delay={0} y={-20}>
+                    <nav className="flex justify-between items-center px-6 md:px-10 pt-6 md:pt-8">
+                        {['About','Skills','Work','Contact'].map(item=>(
+                            <a key={item} href={`#${item.toLowerCase()}`}
+                                className="text-[#D7E2EA] font-medium uppercase tracking-wider text-sm md:text-lg lg:text-[1.4rem] hover:opacity-70 transition-opacity duration-200">
+                                {item}
+                            </a>
+                        ))}
+                    </nav>
+                </FadeIn>
+
+                {/* Glitch Heading */}
+                <div className="overflow-hidden w-full mt-6 sm:mt-4 md:-mt-5 px-4">
+                    <FadeIn delay={0.15} y={40}>
+                        <h1 className="hero-heading font-black uppercase tracking-tight leading-none w-full text-[12vw] sm:text-[11vw] md:text-[10vw] lg:text-[9vw] text-center">
+                            <span className="glitch-wrap" data-text="Hi, I'm Krishan">Hi, I'm Krishan</span>
+                        </h1>
+                    </FadeIn>
+                </div>
+
+                {/* Portrait */}
+                <FadeIn delay={0.6} y={30}
+                    className="absolute left-1/2 -translate-x-1/2 z-10 top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px]">
+                    <Magnet padding={150} strength={3}>
+                        <img src="https://shrug-person-78902957.figma.site/_components/v2/d24c01ad3a56fc65e942a1f501eb73db42d7cf9a/Rectangle_40443.81459862.png"
+                            alt="Krishan Ahuja" className="w-full h-auto object-contain" loading="eager"/>
+                    </Magnet>
+                </FadeIn>
+
+                {/* Bottom */}
+                <div className="mt-auto flex justify-between items-end pb-7 sm:pb-8 md:pb-10 px-6 md:px-10">
+                    <FadeIn delay={0.35} y={20}>
+                        <p className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[160px] sm:max-w-[220px] md:max-w-[260px]"
+                            style={{ fontSize:'clamp(0.75rem,1.4vw,1.5rem)' }}>
+                            Graphic Designer crafting bold visuals, brands &amp; digital experiences
+                        </p>
+                    </FadeIn>
+                    <FadeIn delay={0.5} y={20}><ContactButton /></FadeIn>
+                </div>
+
+                {/* Scroll indicator */}
+                <FadeIn delay={1.2} y={0} className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
+                    <span className="text-[#D7E2EA] text-xs uppercase tracking-[0.2em]">Scroll</span>
+                    <motion.div className="w-px h-10 bg-[#D7E2EA] origin-top"
+                        animate={{ scaleY:[0,1,0] }} transition={{ duration:1.6, repeat:Infinity, ease:'easeInOut' }} />
+                </FadeIn>
+            </section>
+        );
+
+        // ===================== MARQUEE =====================
+        // Tumhare real designs marquee mein
+        const marqueeImages = [
+            'images/d1_burger.png',
+            'images/d2_pizza.png',
+            'images/d3_samosa.png',
+            'images/d4_shoe_new.png',
+            'images/d5_coffee.png',
+            'images/d6_burger2.png',
+            'images/d7_beer.png',
+            'images/d8_bike.png',
+            'images/d9_shoe_bf.png',
+            'images/d10_icecream.png',
+            'images/d11_perfume.png',
+            'images/d12_airpods.png',
+            'images/d13_cupcake.png',
+        ];
+
+        const MarqueeSection = () => {
+            const r1 = [...marqueeImages, ...marqueeImages, ...marqueeImages];
+            const r2 = [...[...marqueeImages].reverse(), ...[...marqueeImages].reverse(), ...[...marqueeImages].reverse()];
+            return (
+                <section className="pt-24 sm:pt-32 pb-10 overflow-hidden bg-[#0C0C0C]">
+                    <FadeIn delay={0} y={20} className="flex flex-wrap gap-2 justify-center px-6 mb-10">
+                        {tools.map(t=><ToolPill key={t} name={t}/>)}
+                    </FadeIn>
+                    <div className="overflow-hidden mq-fade-left">
+                        <div className="flex gap-3 mq-left" style={{width:'max-content'}}>
+                            {r1.map((src,i)=>(
+                                <div key={`r1-${i}`} className="flex-shrink-0 w-[240px] h-[240px] rounded-2xl overflow-hidden">
+                                    <img src={src} alt="" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" loading="lazy"/>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="overflow-hidden mq-fade-left mt-3">
+                        <div className="flex gap-3 mq-right" style={{width:'max-content'}}>
+                            {r2.map((src,i)=>(
+                                <div key={`r2-${i}`} className="flex-shrink-0 w-[240px] h-[240px] rounded-2xl overflow-hidden">
+                                    <img src={src} alt="" className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" loading="lazy"/>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        // ===================== ABOUT =====================
+        const AboutSection = () => (
+            <section className="relative min-h-screen flex flex-col items-center justify-center px-5 sm:px-8 md:px-10 py-20 overflow-hidden" id="about">
+                <div className="float-anim absolute top-[4%] left-[1%] sm:left-[2%] md:left-[4%]">
+                    <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png"
+                        alt="" className="w-[120px] sm:w-[160px] md:w-[210px]" loading="lazy"/>
+                </div>
+                <div className="float-anim-slow absolute bottom-[8%] left-[3%] sm:left-[6%] md:left-[10%]">
+                    <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png"
+                        alt="" className="w-[100px] sm:w-[140px] md:w-[180px]" loading="lazy"/>
+                </div>
+                <div className="float-anim-xslow absolute top-[4%] right-[1%] sm:right-[2%] md:right-[4%]">
+                    <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png"
+                        alt="" className="w-[120px] sm:w-[160px] md:w-[210px]" loading="lazy"/>
+                </div>
+                <div className="float-anim-rev absolute bottom-[8%] right-[3%] sm:right-[6%] md:right-[10%]">
+                    <img src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png"
+                        alt="" className="w-[130px] sm:w-[170px] md:w-[220px]" loading="lazy"/>
+                </div>
+
+                <FadeIn delay={0} y={40}>
+                    <h2 className="hero-heading font-black uppercase leading-none tracking-tight text-center"
+                        style={{ fontSize:'clamp(3rem,12vw,160px)' }}>About me</h2>
+                </FadeIn>
+                <div className="mt-10 sm:mt-14 max-w-[600px] text-center">
+                    <AnimatedText
+                        text="Graphic Designer with a sharp eye for typography, color, and visual storytelling. I create brand identities, digital interfaces, motion graphics, and print designs using Figma, Photoshop, Illustrator, InDesign & After Effects. Let's make something iconic together."
+                        className="text-[#D7E2EA] font-medium leading-relaxed"
+                        style={{ fontSize:'clamp(1rem,2vw,1.35rem)' }}
+                    />
+                </div>
+                <FadeIn delay={0.5} y={20} className="mt-16 sm:mt-20 md:mt-24">
+                    <ContactButton/>
+                </FadeIn>
+            </section>
+        );
+
+        // ===================== STATS =====================
+        const StatsSection = () => (
+            <section className="bg-[#0C0C0C] px-5 sm:px-8 md:px-10 py-16 sm:py-20">
+                <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                        { n:20, suffix:'+', label:'Projects Completed' },
+                        { n:3,  suffix:'+', label:'Years Experience' },
+                        { n:15, suffix:'+', label:'Happy Clients' },
+                        { n:6,  suffix:'',  label:'Design Tools' },
+                    ].map((s,i)=>(
+                        <FadeIn key={i} delay={i*0.1} y={30}>
+                            <div className="stat-card">
+                                <div className="text-white font-black" style={{fontSize:'clamp(2.5rem,6vw,4.5rem)',lineHeight:1}}>
+                                    <Counter target={s.n} suffix={s.suffix}/>
+                                </div>
+                                <p className="text-[#D7E2EA]/50 text-sm uppercase tracking-widest font-medium mt-3">{s.label}</p>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+            </section>
+        );
+
+        // ===================== SKILLS =====================
+        const skills = [
+            { number:'01', name:'Brand Identity & Logo Design',
+              description:'Crafting complete visual identities — logos, color systems, typography, brand guidelines using Adobe Illustrator & Photoshop.',
+              tools:['Illustrator','Photoshop'] },
+            { number:'02', name:'UI/UX & Digital Design',
+              description:'Designing intuitive digital experiences — wireframes, high-fidelity mockups, interactive prototypes and design systems in Figma.',
+              tools:['Figma'] },
+            { number:'03', name:'Print & Editorial Design',
+              description:'Posters, brochures, magazines, packaging — precise grid-based layouts with strong typography using Adobe InDesign & Photoshop.',
+              tools:['InDesign','Photoshop'] },
+            { number:'04', name:'Motion Graphics & Animation',
+              description:'Animated brand assets, intros, transitions and social media reels using Adobe After Effects. Breathing life into static design.',
+              tools:['After Effects'] },
+            { number:'05', name:'Social Media & Content Design',
+              description:'High-converting Instagram, YouTube, and LinkedIn creatives — posts, carousels, thumbnails and templates using Canva & Photoshop.',
+              tools:['Canva','Photoshop'] },
+        ];
+
+        const SkillsSection = () => (
+            <section className="bg-white rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32" id="skills">
+                <FadeIn delay={0} y={40}>
+                    <h2 className="text-[#0C0C0C] font-black uppercase text-center mb-16 sm:mb-20 md:mb-28"
+                        style={{fontSize:'clamp(3rem,12vw,160px)'}}>Skills</h2>
+                </FadeIn>
+                <div className="max-w-5xl mx-auto">
+                    {skills.map((skill,index)=>(
+                        <FadeIn key={skill.number} delay={index*0.1} y={30}>
+                            <div className={`skill-row flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 py-8 sm:py-10 md:py-12 ${index>0?'border-t':''}`}
+                                style={{borderColor:'rgba(12,12,12,0.15)'}}>
+                                <span className="text-[#0C0C0C] font-black flex-shrink-0"
+                                    style={{fontSize:'clamp(3rem,10vw,140px)',lineHeight:1}}>
+                                    {skill.number}
+                                </span>
+                                <div className="flex flex-col gap-3 flex-1">
+                                    <h3 className="text-[#0C0C0C] font-medium uppercase" style={{fontSize:'clamp(1rem,2.2vw,2.1rem)'}}>
+                                        {skill.name}
+                                    </h3>
+                                    <p className="text-[#0C0C0C] font-light leading-relaxed opacity-60 max-w-2xl"
+                                        style={{fontSize:'clamp(0.85rem,1.6vw,1.25rem)'}}>
+                                        {skill.description}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {skill.tools.map(t=>(
+                                            <span key={t} className="text-xs font-medium uppercase tracking-widest bg-[#0C0C0C]/8 border border-[#0C0C0C]/15 rounded-full px-3 py-1 text-[#0C0C0C]/60">
+                                                {t}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </FadeIn>
+                    ))}
+                </div>
+            </section>
+        );
+
+        // ===================== PROJECTS =====================
+
+        // All 13 designs as individual projects
+        const allDesigns = [
+            { num:'01', name:'Hot Burger',         cat:'Social Media · Canva', src:'images/d1_burger.png'    },
+            { num:'02', name:'Delicious Pizza',    cat:'Social Media · Canva', src:'images/d2_pizza.png'     },
+            { num:'03', name:'Samosa Post',        cat:'Social Media · Canva', src:'images/d3_samosa.png'    },
+            { num:'04', name:'New Arrival Shoes',  cat:'Product Ad · Photoshop', src:'images/d4_shoe_new.png'  },
+            { num:'05', name:'Best Quality Coffee',cat:'Social Media · Canva', src:'images/d5_coffee.png'    },
+            { num:'06', name:'Burger Discount',    cat:'Food Ad · Photoshop',  src:'images/d6_burger2.png'   },
+            { num:'07', name:'Happy Hours',        cat:'Event Post · Canva',   src:'images/d7_beer.png'      },
+            { num:'08', name:'Black Friday Bike',  cat:'Product Ad · Photoshop', src:'images/d8_bike.png'      },
+            { num:'09', name:'Black Friday Shoes', cat:'Product Ad · Photoshop', src:'images/d9_shoe_bf.png'   },
+            { num:'10', name:'Ice Cream Post',     cat:'Food Ad · Canva',      src:'images/d10_icecream.png' },
+            { num:'11', name:'Floral Perfume',     cat:'Product Ad · Photoshop', src:'images/d11_perfume.png'  },
+            { num:'12', name:'AirPods Max',        cat:'Product Ad · Photoshop', src:'images/d12_airpods.png'  },
+            { num:'13', name:'Special Bakery',     cat:'Food Ad · Canva',      src:'images/d13_cupcake.png'  },
+        ];
+
+        const DesignCard = ({ design, index, total }) => {
+            const cardRef = useRef(null);
+            const { scrollYProgress } = useScroll({ target:cardRef, offset:['start end','start start'] });
+            const targetScale = 1 - (total - 1 - index) * 0.015;
+            const scale = useTransform(scrollYProgress, [0,1], [1, targetScale]);
+
+            return (
+                <div ref={cardRef} className="h-[88vh] sticky" style={{ top: `${index * 20}px` }}>
+                    <motion.div
+                        className="h-full rounded-[36px] sm:rounded-[48px] border border-[#D7E2EA]/20 bg-[#111] p-5 sm:p-7 md:p-9 flex flex-col overflow-hidden"
+                        style={{ scale }}>
+
+                        {/* Top bar */}
+                        <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center gap-4">
+                                <span className="font-black text-[#D7E2EA]/20"
+                                    style={{fontSize:'clamp(2.5rem,8vw,110px)', lineHeight:1}}>
+                                    {design.num}
+                                </span>
+                                <div>
+                                    <p className="text-[#D7E2EA]/40 text-xs uppercase tracking-widest font-medium mb-1">{design.cat}</p>
+                                    <h3 className="text-[#D7E2EA] font-semibold uppercase tracking-wide"
+                                        style={{fontSize:'clamp(1rem,2vw,1.6rem)'}}>
+                                        {design.name}
+                                    </h3>
+                                </div>
+                            </div>
+                            <span className="hidden sm:flex text-[10px] font-semibold uppercase tracking-widest px-3 py-1.5 rounded-full"
+                                style={{background:'rgba(182,0,168,0.15)', border:'1px solid rgba(182,0,168,0.3)', color:'#D7A0D6'}}>
+                                Design
+                            </span>
+                        </div>
+
+                        {/* Main image — centered, square, with glow */}
+                        <div className="flex-1 flex items-center justify-center min-h-0">
+                            <div className="relative h-full max-h-full aspect-square rounded-2xl overflow-hidden group"
+                                style={{boxShadow:'0 0 60px rgba(182,0,168,0.08)'}}>
+                                <img
+                                    src={design.src}
+                                    alt={design.name}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    loading="lazy"
+                                />
+                                {/* Subtle overlay */}
+                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                    style={{background:'linear-gradient(135deg, rgba(182,0,168,0.08) 0%, transparent 60%)',
+                                            boxShadow:'inset 0 0 0 2px rgba(182,0,168,0.4)'}}>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bottom strip */}
+                        <div className="mt-4 flex items-center justify-between">
+                            <div className="flex gap-2">
+                                {design.cat.split(' · ').map(t => (
+                                    <span key={t} className="text-[10px] uppercase tracking-widest px-3 py-1 rounded-full"
+                                        style={{background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', color:'rgba(215,226,234,0.5)'}}>
+                                        {t}
+                                    </span>
+                                ))}
+                            </div>
+                            <span className="text-[#D7E2EA]/20 text-xs">{index+1} / {total}</span>
+                        </div>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        const WorkSection = () => (
+            <section className="bg-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 relative z-10 px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32" id="work">
+                <FadeIn delay={0} y={40}>
+                    <h2 className="hero-heading font-black uppercase leading-none tracking-tight text-center mb-4"
+                        style={{fontSize:'clamp(3rem,12vw,160px)'}}>Work</h2>
+                    <p className="text-center text-[#D7E2EA]/40 uppercase tracking-widest text-sm mb-16 sm:mb-20 md:mb-28">
+                        13 Social Media Designs
+                    </p>
+                </FadeIn>
+                <div className="max-w-4xl mx-auto">
+                    {allDesigns.map((d, i) => (
+                        <DesignCard key={d.num} design={d} index={i} total={allDesigns.length}/>
+                    ))}
+                </div>
+            </section>
+        );
+
+        // ===================== FOOTER =====================
+        const Footer = () => (
+            <footer className="bg-[#0C0C0C] px-5 sm:px-8 md:px-10 py-12 sm:py-16 md:py-20 text-center" id="contact">
+                <FadeIn delay={0} y={20}>
+                    <h3 className="hero-heading font-black uppercase leading-none tracking-tight mb-6"
+                        style={{fontSize:'clamp(2rem,8vw,100px)'}}>Let's Create</h3>
+                    <p className="text-[#D7E2EA] font-light max-w-xl mx-auto mb-8"
+                        style={{fontSize:'clamp(0.9rem,1.8vw,1.2rem)'}}>
+                        Have a brand or design challenge? I'd love to work on it. Let's craft something iconic together.
+                    </p>
+                    <ContactButton label="Let's Talk"/>
+                </FadeIn>
+                <FadeIn delay={0.2} y={10}>
+                    <p className="text-[#D7E2EA]/30 font-light text-sm mt-12">
+                        &copy; 2025 Krishan Ahuja. All rights reserved.
+                    </p>
+                </FadeIn>
+            </footer>
+        );
+
+        // ===================== APP =====================
+        const App = () => (
+            <div className="font-kanit bg-[#0C0C0C] min-h-screen overflow-x-clip">
+                <HeroSection/>
+                <MarqueeSection/>
+                <AboutSection/>
+                <StatsSection/>
+                <SkillsSection/>
+                <WorkSection/>
+                <Footer/>
+            </div>
+        );
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+    </script>
+</body>
+</html>
